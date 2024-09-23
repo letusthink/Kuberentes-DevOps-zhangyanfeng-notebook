@@ -1,0 +1,38 @@
+node('beijing') {
+    stage('1、拉取业务代码') {
+        git branch: 'master', url: "https://gitee.com/redhat_feng/java_helloworld.git"
+        script {
+            build_tag = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+        }
+    }
+    stage('2、java项目编译、打包') {
+        container('jenkins-jnlp') {
+            sh "mvn clean package -D maven.test.skip=true"
+        }
+    }
+    stage('3、进行代码质量检测') {
+        container('jenkins-jnlp') {
+            sh '/usr/local/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=java-helloworld -Dsonar.projectName=java-helloworld -Dsonar.sources=. -Dsonar.java.binaries=. -Dsonar.language=java -Dsonar.sourceEncoding=UTF-8 -Dsonar.host.url=http://192.168.128.11:30003 -Dsonar.login=admin -Dsonar.password=zz123..'
+        }
+    }
+    stage('4、构建镜像') {
+        container('jenkins-jnlp') {
+            sh "docker build -t 192.168.128.11/cicd/java-helloworld:${build_tag} ."
+        }
+    }
+    stage('5、推送镜像到仓库') {
+        container('jenkins-jnlp') {
+            withCredentials([usernamePassword(credentialsId: 'dockerharbor', passwordVariable: 'dockerHarborPassword', usernameVariable: 'dockerHarborUser')]) {
+                sh "docker login 192.168.128.11 -u ${dockerHarborUser} -p ${dockerHarborPassword}"
+                sh "docker push 192.168.128.11/cicd/java-helloworld:${build_tag}"
+            }
+        }
+    }
+    stage('6、交付Java项目到Kubernetes集群') {
+        container('jenkins-jnlp') {
+            sh "sed -i 's/<BUILD_TAG>/${build_tag}/' deploy-java.yaml"
+            sh "kubectl apply -f deploy-java.yaml --validate=false"
+            sh "sleep 5"
+        }
+    }
+}

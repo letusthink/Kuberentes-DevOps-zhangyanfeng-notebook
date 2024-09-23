@@ -1,0 +1,51 @@
+node('beijing') {
+    stage('Clone') {
+        echo "1、拉取业务代码"
+        git branch: 'main', url: "http://192.168.128.11:30948/root/testing.git"
+        script {
+            build_tag = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+        }
+    }
+    stage('get namespace env') {
+        def NamespaceEnv = input(
+            id: 'NamespaceEnv',
+            message: '获取操作回滚容器所在的命名空间，请选择：',
+            parameters: [
+                [
+                    $class: 'ChoiceParameterDefinition',
+                    choices: "devlopment\nqatest\nproduction",
+                    name: 'Env'
+                ]
+            ]
+        )
+        container('jenkins-jnlp') {
+            echo "This is a deploy step to ${NamespaceEnv}"
+            sh "sed -i 's/<namespace>/${NamespaceEnv}/' k8s-rollout/getVersion.sh"
+            sh "sed -i 's/<namespace>/${NamespaceEnv}/' k8s-rollout/rollout.sh"
+            sh "sh k8s-rollout/getVersion.sh"
+        }
+    }
+    stage('get version') {
+      env.WORKSPACE = pwd()
+      def version = readFile "${env.WORKSPACE}/version.csv"
+      println version
+      def VersionEnv = input(id: 'VersionEnv',
+            message: '请选择要回退的版本：',
+            parameters: [
+              [
+                  $class: 'ChoiceParameterDefinition',
+                  choices: "$version\n",
+                  name: 'Version'
+              ]
+            ]
+      )
+      container('jenkins-jnlp') {
+        sh "sed -i 's/<version>/${VersionEnv}/' k8s-rollout/rollout.sh"
+      }
+    }
+    stage('rollout deploy') {
+        container('jenkins-jnlp') {
+            sh "bash k8s-rollout/rollout.sh"
+        }
+    }
+}

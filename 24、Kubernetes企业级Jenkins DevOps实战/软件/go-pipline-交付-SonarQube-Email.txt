@@ -1,0 +1,147 @@
+node('beijing') {
+    stage('Clone') {
+        echo "1、拉取业务代码"
+        git branch: 'master', url: "https://gitee.com/redhat_feng/go-web.git"
+        script {
+            build_tag = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+        }
+    }
+    stage('SonarQube') {
+        container('jenkins-jnlp') {
+            echo "2、进行代码质量检测"
+            sh '/usr/local/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=web-golang -Dsonar.projectName=web-golang -Dsonar.sources=. -Dsonar.host.url=http://192.168.128.11:30003 -Dsonar.login=admin -Dsonar.password=zz123..'
+        }
+    }
+    stage('Build') {
+        container('jenkins-jnlp') {
+            echo "3、构建镜像"
+            sh "docker build -t 192.168.128.11/cicd/webapp-go:${build_tag} ."
+        }
+    }
+    stage('Push') {
+        container('jenkins-jnlp') {
+            echo "4、推送镜像到dockerharbor仓库"
+            withCredentials([usernamePassword(credentialsId: 'dockerharbor', passwordVariable: 'dockerHarborPassword', usernameVariable: 'dockerHarborUser')]) {
+                sh "docker login 192.168.128.11 -u ${dockerHarborUser} -p ${dockerHarborPassword}"
+                sh "docker push 192.168.128.11/cicd/webapp-go:${build_tag}"
+            }
+        }
+    }
+    stage('Deploy to devlopment') {
+		def userInput = input(
+            id: 'userInput',
+            message: '是否交付Go项目到开发环境？',
+            parameters: [
+                [
+                    $class: 'ChoiceParameterDefinition',
+                    choices: "YES\nNO",
+                    name: 'Env'
+                ]
+            ]
+        )
+        if (userInput == "YES") {
+            container('jenkins-jnlp') {
+                echo "5、构建业务容器到开发环境"
+                sh "sed -i 's/<BUILD_TAG>/${build_tag}/' k8s-yaml/k8s-devlopment.yaml"
+                sh "sed -i 's/<BRANCH_NAME>/${env.BRANCH_NAME}/' k8s-yaml/k8s-devlopment.yaml"
+                sh "kubectl apply -f k8s-yaml/k8s-devlopment.yaml --validate=false"
+                sh "sleep 5"
+            }
+        }
+	}
+	stage('Deploy to qatest') {	
+		def userInput = input(
+            id: 'userInput',
+            message: '是否交付Go项目到测试环境？',
+            parameters: [
+                [
+                    $class: 'ChoiceParameterDefinition',
+                    choices: "YES\nNO",
+                    name: 'Env'
+                ]
+            ]
+        )
+        echo "This is a deploy step to ${userInput}"
+        if (userInput == "YES") {
+            container('jenkins-jnlp') {
+                echo "6、构建业务容器到测试环境"
+                sh "sed -i 's/<BUILD_TAG>/${build_tag}/' k8s-yaml/k8s-qatest.yaml"
+                sh "sed -i 's/<BRANCH_NAME>/${env.BRANCH_NAME}/' k8s-yaml/k8s-qatest.yaml"
+                sh "kubectl apply -f k8s-yaml/k8s-qatest.yaml --validate=false"
+                sh "sleep 5"
+            }
+        }
+    }
+    stage('Deploy to production') {	
+		def userInput = input(
+            id: 'userInput',
+            message: '是否发布到生产环境？',
+            parameters: [
+                [
+                    $class: 'ChoiceParameterDefinition',
+                    choices: "YES\nNO",
+                    name: 'Env'
+                ]
+            ]
+        )
+        if (userInput == "YES") {
+            container('jenkins-jnlp') {
+                echo "7、是否交付Go项目到生产环境？"
+                sh "sed -i 's/<BUILD_TAG>/${build_tag}/' k8s-yaml/k8s-production.yaml"
+                sh "sed -i 's/<BRANCH_NAME>/${env.BRANCH_NAME}/' k8s-yaml/k8s-production.yaml"
+                sh "kubectl apply -f k8s-yaml/k8s-production.yaml --record --validate=false"
+            }
+        }
+    }
+    stage('Notify') {
+        emailext (
+             body: '''
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${ENV, var="JOB_NAME"}-第${BUILD_NUMBER}次构建日志</title>
+</head>
+<body leftmargin="8" marginwidth="0" topmargin="8" marginheight="4" offset="0">
+    <table width="95%" cellpadding="0" cellspacing="0"  style="font-size: 11pt; font-family: Tahoma, Arial, Helvetica, sans-serif">
+        <tr>本邮件由系统自动发出，无需回复！
+            <br/>各位同事，大家好，以下为${PROJECT_NAME }项目构建信息</br>
+            <td><font color="#CC0000">构建结果 - ${BUILD_STATUS}</font></td>
+        </tr>
+        <tr>
+            <td><br />
+            <b><font color="#0B610B">构建信息</font></b>
+            <hr size="2" width="100%" align="center" /></td>
+        </tr>
+        <tr>
+            <td>
+                <ul>
+                    <li>项目名称：${PROJECT_NAME}</li>
+                    <li>构建编号：第${BUILD_NUMBER}次构建</li>
+                    <li>触发原因：${CAUSE}</li>
+                    <li>构建状态：${BUILD_STATUS}</li>
+                    <li>项目URL：<a href="${PROJECT_URL}">${PROJECT_URL}</a></li>
+                    <li>工作目录：<a href="${PROJECT_URL}ws">${PROJECT_URL}ws</a></li>
+                    <li>构建URL：<a href="${BUILD_URL}">${BUILD_URL}</a></li>
+                    <li>构建日志： <a href="${BUILD_URL}console">${BUILD_URL}console</a></li>
+                    <li>测试报告：<a href="${BUILD_URL}HTML_20Report/">${BUILD_URL}HTML_20Report/</a></li>
+                </ul>
+                <h4><font color="#0B610B">失败用例</font></h4>
+                <hr size="2" width="100%" />$FAILED_TESTS<br/>
+                <h4><font color="#0B610B">最近提交版本(git：$GIT_REVISION)</font></h4>
+                <hr size="2" width="100%" />
+                <ul>
+                ${CHANGES_SINCE_LAST_SUCCESS, reverse=true, format="%c", changesFormat="<li>%d[%a] %m</li>"}
+                </ul>
+                    详细提交: <a href="${PROJECT_URL}changes">${PROJECT_URL}changes</a><br/>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+             ''', 
+             subject: "自动化流水线构建通知",
+             to: "1754815191@qq.com"
+        )
+    }
+}
