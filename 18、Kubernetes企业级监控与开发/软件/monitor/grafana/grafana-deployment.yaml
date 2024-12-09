@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.0.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+          name: grafana
+        env:
+        - name: GF_SECURITY_ADMIN_USER  #用户名
+          value: admin
+        - name: GF_SECURITY_ADMIN_PASSWORD  #密码
+          value: admin
+        readinessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /api/health
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 30
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/health
+            port: 3000
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+#        resources:
+#          requests:
+#            memory: "256Mi"
+#            cpu: "150m"
+#          limits:
+#            memory: "2048Mi"
+#            cpu: "500m"
+        volumeMounts:
+        - mountPath: /var/lib/grafana
+          name: storage
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: grafana-pvc

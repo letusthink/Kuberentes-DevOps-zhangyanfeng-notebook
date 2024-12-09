@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: prometheus-test
+  labels:
+    app: prometheus-test
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: '80'
+    prometheus.io/path: '/check'
+spec:
+  initContainers:
+  - name: install
+    image: busybox:latest
+    command: ['sh', '-c', 'echo check_pod_healthy{status=\"true\"} 1 > /work/check']
+    volumeMounts:
+    - name: work
+      mountPath: /work
+  containers:
+  - name: prometheus-test
+    image: nginx
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: work
+      mountPath: /usr/share/nginx/html
+  volumes:
+  - name: work
+    emptyDir: {}

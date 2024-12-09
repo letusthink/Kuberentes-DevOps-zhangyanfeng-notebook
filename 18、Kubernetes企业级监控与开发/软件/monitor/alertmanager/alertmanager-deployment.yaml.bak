@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager-server
+  namespace: monitor
+  labels:
+    app: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+      - name: alertmanager
+        image: prom/alertmanager:v0.25.0
+        imagePullPolicy: IfNotPresent
+        args:
+        - "--config.file=/etc/alertmanager/alertmanager.yml"
+        - "--storage.path=/alertmanager"
+        - "--data.retention=120h"
+        - "--log.level=debug"
+        ports:
+        - containerPort: 9093
+          protocol: TCP
+          name: alertmanager
+        volumeMounts:
+        - name: alertmanager-storage
+          mountPath: /alertmanager
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: alertmanager-configmap
+          mountPath: /etc/alertmanager/alertmanager.yml
+          subPath: alertmanager.yml
+        - name: alertmanager-email
+          mountPath: /template/email.tmpl
+          subPath: email.tmpl
+      volumes:
+        - name: alertmanager-storage
+          persistentVolumeClaim:
+            claimName: alertmanager-pvc
+        - name: localtime
+          hostPath:
+           path: /usr/share/zoneinfo/Asia/Shanghai
+        - name: alertmanager-configmap
+          configMap:
+            name: alertmanager-configmap
+            items:
+              - key: alertmanager.yml
+                path: alertmanager.yml
+                mode: 0644
+        - name: alertmanager-email
+          configMap:
+            name: alertmanager-configmap
+            items:
+              - key: email.tmpl
+                path: email.tmpl
+                mode: 0644

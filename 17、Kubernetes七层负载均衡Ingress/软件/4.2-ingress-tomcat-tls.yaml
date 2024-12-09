@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-myapp-tls
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: tomcat.zyf.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: tomcat
+            port:
+              number: 8080
+  tls:
+  - hosts:
+    - tomcat.zyf.com
+    secretName: tomcat-ingress-secret

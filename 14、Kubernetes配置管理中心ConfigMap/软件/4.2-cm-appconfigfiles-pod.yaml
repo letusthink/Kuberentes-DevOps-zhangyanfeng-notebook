@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cm-appconfigfiles
+spec:
+  containers:
+  - name: cm-appconfigfiles
+    image: nginx:latest
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: serverxml
+      mountPath: /configfiles
+  volumes:
+  - name: serverxml
+    configMap:
+      name: cm-appconfigfiles
+      items:
+      - key: key-serverxml
+        path: server.xml
+      - key: key-loggingproperties
+        path: logging.properties

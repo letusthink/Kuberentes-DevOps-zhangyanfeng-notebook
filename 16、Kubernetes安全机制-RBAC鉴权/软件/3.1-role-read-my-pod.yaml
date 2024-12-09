@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: role-read-my-pod
+  namespace: default
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - my-pod
+  resources:
+  - pods
+  verbs:
+  - get
+  - watch
+  - list

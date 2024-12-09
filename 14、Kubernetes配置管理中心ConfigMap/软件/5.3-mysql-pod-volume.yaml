@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-pod-volume
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: mysql
+        image: nginx:latest
+        command: [ "/bin/sh","-c","sleep 3600" ]
+        volumeMounts:
+        - name: mysql-config
+          mountPath: /etc/nginx/my.cnf
+          subPath: my-test.cnf
+      volumes:
+      - name: mysql-config
+        configMap:
+          name: mysql
+          items:
+          - key: my.cnf
+            path: my-test.cnf

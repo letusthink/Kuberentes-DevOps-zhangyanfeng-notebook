@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-nfs
+spec:
+  containers:
+  - name: test-nfs
+    image: nginx
+    volumeMounts:
+    - name: test-volume
+      mountPath: /test-nginx
+  volumes:
+  - name: test-volume
+    nfs:
+      path: /data/volumes
+      server: 192.168.128.11

@@ -1,0 +1,21 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus-config-rules
+  namespace: monitor
+data:
+  node-exporter_rules.yml: |
+    groups:
+    - name: node-exporter_rules
+      rules:
+      - alert: "check_node-exporter"
+        expr: up{job="kubernetes-node-exporter"} == 0
+        for: 10s
+        labels:
+          severity: high
+        annotations:
+          summary: "kubernetes-node-exporter故障！！！"
+          description: "From host: {{ $labels.instance }}, Job is: {{ $labels.job }}, already down."
+          value: "{{ $value }}"

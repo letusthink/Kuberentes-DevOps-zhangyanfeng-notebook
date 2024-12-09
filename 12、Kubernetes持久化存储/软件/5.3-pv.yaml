@@ -1,0 +1,120 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-v1
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes: ["ReadWriteOnce"]
+  nfs:
+    path: /data/data_v1
+    server: 192.168.128.11
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-v2
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes: ["ReadOnlyMany"]
+  nfs:
+    path: /data/data_v2
+    server: 192.168.128.11
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-v3
+spec:
+  capacity:
+    storage: 3Gi
+  accessModes: ["ReadWriteMany"]
+  nfs:
+    path: /data/data_v3
+    server: 192.168.128.11
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-v4
+spec:
+  capacity:
+    storage: 4Gi
+  accessModes: ["ReadWriteOnce","ReadWriteMany"]
+  nfs:
+    path: /data/data_v4
+    server: 192.168.128.11
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-v5
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes: ["ReadWriteOnce","ReadWriteMany"]
+  nfs:
+    path: /data/data_v5
+    server: 192.168.128.11
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-v6
+spec:
+  capacity:
+    storage: 6Gi
+  accessModes: ["ReadWriteOnce","ReadWriteMany"]
+  nfs:
+    path: /data/data_v6
+    server: 192.168.128.11
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-v7
+spec:
+  capacity:
+    storage: 7Gi
+  accessModes: ["ReadWriteOnce","ReadWriteMany"]
+  nfs:
+    path: /data/data_v7
+    server: 192.168.128.11
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-v8
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes: ["ReadWriteOnce","ReadWriteMany"]
+  nfs:
+    path: /data/data_v8
+    server: 192.168.128.11
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-v9
+spec:
+  capacity:
+    storage: 9Gi
+  accessModes: ["ReadWriteOnce","ReadWriteMany"]
+  nfs:
+    path: /data/data_v9
+    server: 192.168.128.11
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-v10
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes: ["ReadWriteOnce","ReadWriteMany"]
+  nfs:
+    path: /data/data_v10
+    server: 192.168.128.11

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-exporter
+  namespace: monitor
+  labels:
+    name: node-exporter
+spec:
+  selector:
+    matchLabels:
+     name: node-exporter
+  template:
+    metadata:
+      labels:
+        name: node-exporter
+    spec:
+      hostPID: true
+      hostIPC: true
+      hostNetwork: true
+      containers:
+      - name: node-exporter
+        image: prom/node-exporter:v1.6.0
+        ports:
+        - containerPort: 9100
+#        resources:
+#          requests:
+#            memory: "50Mi"
+#            cpu: "100m"
+#          limits:
+#            memory: "2048Mi"
+#            cpu: "500m"
+        securityContext:
+          privileged: true
+        args:
+        - --path.rootfs
+        - /host
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: rootfs
+          readOnly: true
+          mountPath: /host
+      volumes:
+        - name: localtime
+          hostPath:
+           path: /usr/share/zoneinfo/Asia/Shanghai
+        - name: rootfs
+          hostPath:
+            path: /
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"

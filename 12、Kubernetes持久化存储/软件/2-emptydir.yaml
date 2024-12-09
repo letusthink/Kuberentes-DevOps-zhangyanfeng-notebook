@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-empty
+spec:
+  containers:
+  - name: pod-empty
+    image: nginx
+    volumeMounts:
+    - name: empty-volume
+      mountPath: /cache
+  volumes:
+  - name: empty-volume
+    emptyDir: {}

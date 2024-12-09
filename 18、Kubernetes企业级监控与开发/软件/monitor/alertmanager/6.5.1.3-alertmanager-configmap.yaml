@@ -1,0 +1,154 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-configmap
+  namespace: monitor
+data:
+  alertmanager.yml: |-
+    global:
+      resolve_timeout: 5m
+      smtp_smarthost: 'smtp.qq.com:465'
+      smtp_from: '1754815191@qq.com'
+      smtp_auth_username: '1754815191@qq.com'
+      smtp_auth_password: 'rcoqnbscxfwiddeh'
+      smtp_require_tls: false
+    templates:
+      - '/template/*.tmpl'
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: email
+    receivers:
+    - name: 'email'
+      email_configs:
+      - to: '1754815191@qq.com'
+        headers: { Subject: " WARNING- -告警邮件" }
+        send_resolved: true
+        html: '{{ template "email.to.html" .}}'
+    inhibit_rules:
+      - source_match:
+          severity: 'critical'
+        target_match:
+          severity: 'warning'
+        equal: ['alertname', 'dev', 'instance']
+
+  email.tmpl: |-
+    {{ define "email.to.html" }}
+    {{- if gt (len .Alerts.Firing) 0 -}}
+      {{- range $index, $alert := .Alerts -}}
+        {{- if true }}
+        <html>    
+        <head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"> </haed>
+        <body style="margin: 0; padding: 0;">
+        <h2>异常告警通知:</h2>
+        <div align="left">
+            <table border="1" style="border:5px solid #F2F2F2;" cellspacing="4" cellpadding="3" width="650" style="table-layout:fixed">
+                <tr>
+                    <th align="left"><b>告警项</b></marquee></th>
+                    <th align="left"><b>内容信息</b></marquee></th>
+                </tr> 
+                <tr>
+                    <td align="left" style="font-family:微软雅黑; width: 15%" style="WORD-WRAP:break-word">告警程序</td>
+                    <td align="left" bgcolor="ff0000" style="font-family:微软雅黑; width: 60%" style="WORD-WRAP:break-word">prometheus_alert</td>
+                </tr> 
+                <tr>
+                    <td align="left" style="font-family:微软雅黑; size=5;width: 20%" style="WORD-WRAP:break-word">告警级别</td>
+                    <td align="left" bgcolor="ff0000" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Labels.severity }}</td>
+                </tr> 
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">告警状态</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="padding-left: 15px;color: red;font-weight: bold;">{{ .Status }}</td>
+                </tr> 
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">告警类型</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Labels.alertname }}</td>
+                </tr> 
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">故障主机</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Labels.instance }}</td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">告警主题</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Annotations.summary }}</td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">主题内容</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Annotations.description }}</td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">value</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Annotations.value }}</td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">故障时间</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ (.StartsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}</td>
+                </tr>
+            </table>
+        </body>
+        </html>
+        {{ end }}
+      {{ end }}
+    {{ end }}
+
+    {{- if gt (len .Alerts.Resolved) 0 -}}
+      {{- range $index, $alert := .Alerts -}}
+        {{- if true }}
+        <html>    
+        <head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"> </haed>
+        <body style="margin: 0; padding: 0;">
+        <h2>异常恢复通知:</h2>
+        <div align="left">
+            <table border="1" style="border:5px solid #F2F2F2;" cellspacing="4" cellpadding="3" width="650" style="table-layout:fixed">
+                <tr>
+                    <th align="left"><b>告警项</b></marquee></th>
+                    <th align="left"><b>内容信息</b></marquee></th>
+                </tr> 
+                <tr>
+                    <td align="left" style="font-family:微软雅黑; width: 15%" style="WORD-WRAP:break-word">告警程序</td>
+                    <td align="left" bgcolor="ff0000" style="font-family:微软雅黑; width: 60%" style="WORD-WRAP:break-word">prometheus_alert</td>
+                </tr> 
+                <tr>
+                    <td align="left" style="font-family:微软雅黑; size=5;width: 20%" style="WORD-WRAP:break-word">告警级别</td>
+                    <td align="left" bgcolor="ff0000" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Labels.severity }}</td>
+                </tr> 
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">告警状态</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="padding-left: 15px;color: red;font-weight: bold;">{{ .Status }}</td>
+                </tr> 
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">告警类型</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Labels.alertname }}</td>
+                </tr> 
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">故障主机</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Labels.instance }}</td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">告警主题</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Annotations.summary }}</td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">主题内容</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Annotations.description }}</td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">value</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Annotations.value }}</td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">故障时间</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ (.StartsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}</td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">恢复时间</td>
+                    <td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ (.EndsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}</td>
+                </tr>
+            </table>
+        </body>
+        </html>
+        {{ end }}
+      {{ end }}
+    {{ end }}
+    {{ end }}

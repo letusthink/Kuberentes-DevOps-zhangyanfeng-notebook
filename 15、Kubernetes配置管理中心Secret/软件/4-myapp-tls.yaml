@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-tls
+  labels:
+    app: myapp-tls
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp-tls
+  template:
+    metadata:
+      labels:
+        app: myapp-tls
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 443
+        - containerPort: 80
+        volumeMounts:
+        - name: tls-certs
+          mountPath: /etc/tls
+        - name: nginxconf
+          mountPath: /etc/nginx/conf.d/nginx-ssl.conf
+          subPath: nginx-ssl.conf
+      volumes:
+      - name: tls-certs
+        secret:
+          secretName: secret-tls
+      - name: nginxconf
+        configMap:
+          name: nginx-conf

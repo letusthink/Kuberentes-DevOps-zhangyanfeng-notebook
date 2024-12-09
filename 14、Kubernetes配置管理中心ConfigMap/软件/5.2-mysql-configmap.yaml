@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+data:
+    log: "2"
+    lower: "3"
+    my.cnf: |
+      [mysqld]
+      server-id=5
