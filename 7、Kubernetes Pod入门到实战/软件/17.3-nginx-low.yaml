@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-low
+  namespace: default
+  labels:
+    app: web
+spec:
+  nodeSelector: 
+    kubernetes.io/hostname: k8s-node01
+  priorityClassName: low
+  containers:
+  - name: nginx
+    image: nginx:latest
+    imagePullPolicy: IfNotPresent
+    ports:
+      - containerPort: 80

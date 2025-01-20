@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mysql-2
+  namespace: default
+  labels:
+    app: mysql-2
+spec:
+  nodeName: k8s-node02
+  containers:
+  - name: mysql-2
+    image: nginx:latest

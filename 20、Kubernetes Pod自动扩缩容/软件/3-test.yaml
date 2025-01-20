@@ -1,0 +1,39 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: hpatest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hpatest     
+  template: 
+    metadata:
+      labels:
+        app: hpatest
+    spec:
+      containers:
+      - name: hpatest
+        image: nginx
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh"]
+        args: ["-c","/usr/sbin/nginx; while true;do echo `hostname -I` > /usr/share/nginx/html/index.html; sleep 120;done"]
+        ports: 
+        - containerPort: 80
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 200m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hpatest-svc
+spec:
+  selector:
+    app: hpatest
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP

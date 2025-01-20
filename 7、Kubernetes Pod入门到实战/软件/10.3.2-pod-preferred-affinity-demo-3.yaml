@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
+  namespace: default
+  labels:
+    app: web
+spec:
+  containers:
+  - name: web
+    image: nginx:latest
+  affinity:
+    podAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 10
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values: 
+              - mysql-1
+          namespaces:
+            - default
+          topologyKey: kubernetes.io/hostname 
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 50
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values: 
+              - mysql-2
+          namespaces:
+            - default
+          topologyKey: kubernetes.io/hostname
+

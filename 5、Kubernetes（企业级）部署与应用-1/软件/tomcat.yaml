@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demo-pod
+  namespace: default
+  labels:
+    app: myapp
+    env: dev
+spec:
+  containers:
+  - name:  tomcat-pod-java
+    ports:
+    - containerPort: 8080
+    image: tomcat:8.5-jre8-alpine
+    imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcat
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      nodePort: 30080
+  selector:
+    app: myapp
+    env: dev

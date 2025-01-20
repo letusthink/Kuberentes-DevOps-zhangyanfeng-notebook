@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-always
+  namespace: default
+  labels:
+    app: tomcat
+spec:
+  restartPolicy: Always
+  containers:
+  - name: pod-always
+    image: tomcat:8.5-jre8-alpine
+    imagePullPolicy: IfNotPresent

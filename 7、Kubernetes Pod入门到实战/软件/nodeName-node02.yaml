@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tomcat-node02
+  namespace: default
+  labels:
+    app: tomcat
+spec:
+  nodeName: k8s-node02
+  containers:
+  - name: tomcat
+    image: tomcat:latest
+    ports:
+    - name: web
+      containerPort: 8080
+    imagePullPolicy: IfNotPresent

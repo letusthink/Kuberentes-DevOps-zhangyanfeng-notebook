@@ -1,0 +1,11 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: git-input
+spec:
+  type: git
+  params:
+    - name: url  #仓库地址
+      value: https://gitee.com/redhat_feng/tekton.git
+    - name: revision  #分支
+      value: master

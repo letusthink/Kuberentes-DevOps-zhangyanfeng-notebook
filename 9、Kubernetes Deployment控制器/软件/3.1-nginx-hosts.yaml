@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-hosts
+  labels:
+    app: nginx-hosts
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: nginx-hosts
+        image: nginx:latest
+        imagePullPolicy: IfNotPresent
+      hostAliases:
+      - ip: "192.168.128.11"
+        hostnames:
+        - "zyf.qq.com"
+        - "zyf.test.com"

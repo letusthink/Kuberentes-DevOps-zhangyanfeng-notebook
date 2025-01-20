@@ -1,0 +1,16 @@
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: low
+value: 100
+globalDefault: false
+description: "低优先级"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high
+value: 10000
+globalDefault: false
+description: "高优先级"

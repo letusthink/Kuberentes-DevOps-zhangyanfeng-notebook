@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tekton-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tekton-test
+  template:
+    metadata:
+      labels:
+        app: tekton-test
+    spec:
+      containers:
+      - image: zhangyanfeng0429/tekton-test:latest
+        imagePullPolicy: IfNotPresent
+        name: tekton-test

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-dns
+  labels:
+    app: nginx-dns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: nginx-dns
+        image: nginx:latest
+        imagePullPolicy: IfNotPresent
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 192.168.128.254
+        - 192.168.128.1
+        searches:
+        - nat.svc.cluster.local
+        - my.dns.search.nat
